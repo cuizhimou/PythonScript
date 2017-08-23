@@ -43,6 +43,7 @@ def dataformat(alist, num):
     data = map(list, alist)
     content = "<table border=\"1\"> <caption>" + str(yesterday) + "统计数据</caption> "
     content = content + " <tr><th>公司名称</th><th>姓名</th><th>支付类型</th><th>入职状态</th><th>预约id</th><th>体检机构</th></tr>"
+    # content = content + draw_table(data)
     for i in range(num):
         for j in range(len(data[i])):
             if data[i][j] is None:
@@ -54,6 +55,18 @@ def dataformat(alist, num):
     content = content + " </table>"
     return content
 
+# 根据数据绘制表格内容
+def draw_table(matrix):
+    content = ''
+    for row in matrix:
+        content = "{0}<tr>".format(content is None and '' or content)
+        for ele in row:
+            if ele is None:
+                ele = " "
+                # print ele
+            content = "{0}<td>{1}</td>".format(content, type(ele) is types.LongType and ele or ele.encode("utf8"))
+        content = "{0}</tr>".format(content)
+    return content
 
 if __name__ == '__main__':
     today = datetime.date.today()
