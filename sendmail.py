@@ -30,7 +30,29 @@ def getdata():
                            user='root', passwd='xxx',
                            db='tahiti',
                            charset='utf8')
-    sql = "select cmp.company_name as \'公司名称\',inv.name as \'姓名\',case inv.pay_type when 0 then \'企业支付\' when 1 then \'员工自付\' when 2 then \'检后全额报销\' when 3 then \'检后固定报销\' else \'未知\' end as \'支付类型\',case inv.board_status when 0 then \'待处理\' when 1 then \'入职\' when 2 then \'拒绝入职\' else \'未知\' end as \'入职状态\',inv.reserve_id as \'预约id\',inst.name as  \'体检机构\' from tbl_cmp_he_invitation inv left join tbl_company cmp on inv.cmp_id = cmp.company_id left join tbl_he_reserve rsv on rsv.he_id = inv.reserve_id left join tbl_institution inst on inst.inst_id = rsv.inst_id where date(inv.update_time)=date_sub(date(now()), interval 1 day) and inv.cmp_id>=8"
+    sql ="SELECT date(reserve_time) as \'日期\',usr.name as \'姓名\',case usr.sex " \
+         "when 1 then '男' " \
+         "when 2 then '女' " \
+         "else concat('未知性别:', usr.sex) end as '性别'," \
+         "usr.identity_number as '身份证'," \
+         "usr.mobile as '手机号码'," \
+         "case rsv.status " \
+         "when 0 then '已预约' " \
+         "when 1 then '已到检' " \
+         "when 2 then '已出报告' " \
+         "when 3 then '已出报告' " \
+         "when 4 then '已过期' " \
+         "when 5 then '已取消'" \
+         "else concat('未知状态:', rsv.status) end as '预约状态'," \
+         "inst.name as '机构名称'," \
+         "pack.name as '套餐名称'" \
+         "FROM tahiti.tbl_he_reserve rsv" \
+         "join tahiti.tbl_user usr on usr.user_id = rsv.user_id " \
+         "join tahiti.tbl_institution inst on inst.inst_id = rsv.inst_id " \
+         "join tahiti.tbl_invitation_code code on code.invitation_code = rsv.invitation_code " \
+         "join tahiti.tbl_invitation inv on inv.invitation_id = code.invitation_id " \
+         "join tahiti.tbl_he_package pack on pack.pack_id = inv.pack_id " \
+         "where date(rsv.update_time) = date(now());"
     cur = conn.cursor()
     num = cur.execute(sql)
     info = cur.fetchmany(num)
@@ -42,16 +64,23 @@ def dataformat(alist, num):
     data = []
     data = map(list, alist)
     content = "<table border=\"1\"> <caption>" + str(yesterday) + "统计数据</caption> "
-    content = content + " <tr><th>公司名称</th><th>姓名</th><th>支付类型</th><th>入职状态</th><th>预约id</th><th>体检机构</th></tr>"
+    content = content + " <tr><th>日期</th><th>姓名</th><th>性别</th><th>身份证</th><th>手机号</th>" \
+                        "<th>手机号</th><th>预约状态</th><th>机构名称</th><th>套餐名称</th></tr>"
     # content = content + draw_table(data)
     for i in range(num):
         for j in range(len(data[i])):
             if data[i][j] is None:
                 data[i][j] = "  "
-        content = content + " <tr><td>" + data[i][0].encode("utf8") + "</td><td>" + data[i][1].encode(
-            "utf8") + "</td><td>" + data[i][2].encode("utf8") + "</td><td>" + data[i][3].encode(
-            "utf8") + "</td><td>" + str(data[i][4]).encode("utf8") + "</td><td>" + data[i][5].encode(
-            "utf8") + "</td></tr>"
+        content = content + " <tr><td>" + \
+                  data[i][0].encode("utf8") + "</td><td>" + \
+                  data[i][1].encode("utf8") + "</td><td>" + \
+                  data[i][2].encode("utf8") + "</td><td>" + \
+                  data[i][3].encode("utf8") + "</td><td>" + \
+                  data[i][4].encode("utf8") + "</td><td>" + \
+                  data[i][5].encode("utf8") + "</td><td>" + \
+                  data[i][6].encode("utf8") + "</td><td>" + \
+                  data[i][7].encode("utf8") + \
+                  "</td></tr>"
     content = content + " </table>"
     return content
 
